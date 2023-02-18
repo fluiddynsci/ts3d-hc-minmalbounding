@@ -26,7 +26,7 @@ export class TightBounding {
                 let tpoints = [];
 
                 let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
-                let totalmatrix = Communicator.Matrix.multiply(matrix, netmatrix);
+                let totalmatrix = Communicator.Matrix.multiply(netmatrix,matrix);
 
                 let data = await hwv.model.getNodeMeshData(nodeid);
 
@@ -37,29 +37,15 @@ export class TightBounding {
                         for (let k = 0; k < 3; k++) {
                             let rawpoint = pp.next();
                             let p = new Communicator.Point3(rawpoint.position[0], rawpoint.position[1], rawpoint.position[2]);
-                             tpoints.push([p.x,p.y,p.z]);
+                            let tp = totalmatrix.transform(p);
+                             points.push([tp.x,tp.y,tp.z]);
 //                            let tp = totalmatrix.transform(p);
   //                          points.push(tp);
                         }
                     }
                 }
-                let res = new QuickHull(tpoints);
-                res.build();
-                let faces = res.collectFaces();
-                let phash = [];
-                for (let i = 0; i < faces.length; i++) {
-                    let face = faces[i];
-                    for (let j = 0; j < 3; j++) {
-                        let pi = face[j]
-                        if (phash[pi] == undefined) {
-                            phash[pi] = 1;
-                            let p = new Communicator.Point3(tpoints[pi][0], tpoints[pi][1], tpoints[pi][2]);
-                            let tp = totalmatrix.transform(p);
-                            points.push(tp);
-                        }
-                    }
-                }
-   
+               
+
 
 //                 let res = TightBounding._convexHull(tpoints);
                 //  for (let i = 0; i < res.length; i++) {
@@ -82,7 +68,26 @@ export class TightBounding {
         var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
 
         await TightBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse);
-        return points;
+
+        let respoints = [];
+        let res = new QuickHull(points);
+        res.build();
+        let faces = res.collectFaces();
+        let phash = [];
+        for (let i = 0; i < faces.length; i++) {
+            let face = faces[i];
+            for (let j = 0; j < 3; j++) {
+                let pi = face[j]
+                if (phash[pi] == undefined) {
+                    phash[pi] = 1;
+                    let p = new Communicator.Point3(points[pi][0], points[pi][1], points[pi][2]);
+                  //  let tp = totalmatrix.transform(p);
+                  respoints.push(p);
+                }
+            }
+        }
+
+        return respoints;
     }
   
     static async calculatePointBounding(viewer,nodeid) {
@@ -125,7 +130,7 @@ export class TightBounding {
 
         let origmatrix = viewer.model.getNodeMatrix(nodeid);
         let bounding = await viewer.model.getNodesBounding([nodeid]);
-        for (let i=0;i<15000;i++) {
+        for (let i=0;i<5000;i++) {
 
             let angle = 0;
             let axis = null
@@ -147,8 +152,10 @@ export class TightBounding {
             let netmatrix = Communicator.Matrix.multiply(matrix,netmatrix2);
 
     
+            let resp = [];
+            netmatrix.transformArray(points,resp);
             for (let j = 0; j < points.length; j++) {
-                let p = netmatrix.transform(points[j]);
+                let p =resp[j];
                 if (p.x < min.x) min.x = p.x;
                 if (p.y < min.y) min.y = p.y;
                 if (p.z < min.z) min.z = p.z;
