@@ -20,40 +20,34 @@ export class TightBounding {
     static async _getMeshPointsRecursive(viewer, nodeid, points, matrix) {
         let children = await hwv.model.getNodeChildren(nodeid);
 
-        if (children.length == 0) {
-            let meshdata = await hwv.model.getNodeMeshData(nodeid);
-            if (meshdata) {
-                let tpoints = [];
+        try {
+            if (children.length == 0) {
 
-                let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
-                let totalmatrix = Communicator.Matrix.multiply(netmatrix,matrix);
+                let meshdata = await hwv.model.getNodeMeshData(nodeid);
+                if (meshdata) {
+                    let tpoints = [];
 
-                let data = await hwv.model.getNodeMeshData(nodeid);
+                    let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
+                    let totalmatrix = Communicator.Matrix.multiply(netmatrix, matrix);
 
-                for (let i = 0; i < data.faces.elementCount; i++) {
-                    let face = data.faces.element(i);
-                    let pp = face.iterate();
-                    for (let j = 0; j < face.vertexCount; j += 3) {
-                        for (let k = 0; k < 3; k++) {
-                            let rawpoint = pp.next();
-                            let p = new Communicator.Point3(rawpoint.position[0], rawpoint.position[1], rawpoint.position[2]);
-                            let tp = totalmatrix.transform(p);
-                             points.push([tp.x,tp.y,tp.z]);
-//                            let tp = totalmatrix.transform(p);
-  //                          points.push(tp);
+                    let data = await hwv.model.getNodeMeshData(nodeid);
+
+                    for (let i = 0; i < data.faces.elementCount; i++) {
+                        let face = data.faces.element(i);
+                        let pp = face.iterate();
+                        for (let j = 0; j < face.vertexCount; j += 3) {
+                            for (let k = 0; k < 3; k++) {
+                                let rawpoint = pp.next();
+                                let p = new Communicator.Point3(rawpoint.position[0], rawpoint.position[1], rawpoint.position[2]);
+                                let tp = totalmatrix.transform(p);
+                                points.push([tp.x, tp.y, tp.z]);
+                            }
                         }
                     }
                 }
-               
-
-
-//                 let res = TightBounding._convexHull(tpoints);
-                //  for (let i = 0; i < res.length; i++) {
-                //      let p = new Communicator.Point3(res[i][0], res[i][1], res[i][2]);
-                //      let tp = totalmatrix.transform(p);
-                //      points.push(tp);
-                //  }
             }
+        } catch (e) {
+
         }
 
 
@@ -123,45 +117,60 @@ export class TightBounding {
     }
 
 
-    static async calculateTightBounding(viewer,nodeid) {
-        let points = await TightBounding._getMeshPoints(viewer,nodeid);
+    static async calculateTightBounding(viewer, nodeid) {
+        let points = await TightBounding._getMeshPoints(viewer, nodeid);
 
-        let smallest = {volume:10000000000,angle:0,axis:new Communicator.Point3(1,0,0), min:new Communicator.Point3(0,0,0), max:new Communicator.Point3(0,0,0)};
+        let smallest = { volume: 10000000000, angle: 0, axis: new Communicator.Point3(1, 0, 0), min: new Communicator.Point3(0, 0, 0), max: new Communicator.Point3(0, 0, 0) };
 
         let origmatrix = viewer.model.getNodeMatrix(nodeid);
         let bounding = await viewer.model.getNodesBounding([nodeid]);
-        for (let i=0;i<5000;i++) {
+        let axis;
+        for (let i = 0; i < 4; i++) {
+            let kend = 360;
+            if (i == 0) {
+                axis = new Communicator.Point3(0, 0, 1);
+            }
+            else if (i == 1) {
+                axis = new Communicator.Point3(0, 1, 0);
+            }
+            else if (i == 2) {
+                axis = new Communicator.Point3(1, 0, 0);
+            }
+            else {
+                kend = 10000;
+            }
+            for (let k = 0; k < kend; k++) {
 
-            let angle = 0;
-            let axis = null
+                let angle;
+                if (i > 2) {
 
-           // if (i > 0) {
-                angle = Math.random() *360;
-                //angle  = 0;
-                axis = new Communicator.Point3(Math.random(), Math.random(), Math.random());
-                axis.normalize();        
-                //axis = new Communicator.Point3(0,0,1);
-//                viewer.model.setNodeMatrix(nodeid,origmatrix);
-             let matrix = await TightBounding._rotateNodeFromHandle(viewer,nodeid,axis,angle, bounding.center(), false);
-          //  }
+                    axis = new Communicator.Point3(Math.random(), Math.random(), Math.random());
+                    axis.normalize();
+                    angle = Math.random() * 360;
+                }
+                else {
+                    angle = k;
+                }
 
-            let min = new Communicator.Point3(1000000000,1000000000,1000000000);
-            let max = new Communicator.Point3(-1000000000,-1000000000,-1000000000);
-    
-            let netmatrix2 = viewer.model.getNodeNetMatrix(viewer.model.getNodeParent(nodeid));
-            let netmatrix = Communicator.Matrix.multiply(matrix,netmatrix2);
+                let matrix = await TightBounding._rotateNodeFromHandle(viewer, nodeid, axis, angle, bounding.center(), false);
 
-    
-            let resp = [];
-            netmatrix.transformArray(points,resp);
-            for (let j = 0; j < points.length; j++) {
-                let p =resp[j];
-                if (p.x < min.x) min.x = p.x;
-                if (p.y < min.y) min.y = p.y;
-                if (p.z < min.z) min.z = p.z;
-                if (p.x > max.x) max.x = p.x;
-                if (p.y > max.y) max.y = p.y;
-                if (p.z > max.z) max.z = p.z;
+                let min = new Communicator.Point3(1000000000, 1000000000, 1000000000);
+                let max = new Communicator.Point3(-1000000000, -1000000000, -1000000000);
+
+                let netmatrix2 = viewer.model.getNodeNetMatrix(viewer.model.getNodeParent(nodeid));
+                let netmatrix = Communicator.Matrix.multiply(matrix, netmatrix2);
+
+
+                let resp = [];
+                netmatrix.transformArray(points, resp);
+                for (let j = 0; j < points.length; j++) {
+                    let p = resp[j];
+                    if (p.x < min.x) min.x = p.x;
+                    if (p.y < min.y) min.y = p.y;
+                    if (p.z < min.z) min.z = p.z;
+                    if (p.x > max.x) max.x = p.x;
+                    if (p.y > max.y) max.y = p.y;
+                    if (p.z > max.z) max.z = p.z;
             }
 
             let volume = (max.x-min.x)*(max.y-min.y)*(max.z-min.z);
@@ -172,6 +181,7 @@ export class TightBounding {
                 smallest.min = min;
                 smallest.max = max;
             }
+         }
 
         }
 
