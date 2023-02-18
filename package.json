@@ -1,0 +1,20 @@
+{
+  "name": "ts3d-hc-curvetoolkit",
+  "version": "0.2.0",
+  "description": "",
+  "main": "server/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Guido Hoffmann",
+  "license": "",
+  "devDependencies": {
+    "nodemon": "^1.18.3",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "quickhull3d": "^2.1.0",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  }
+}
