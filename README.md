@@ -1,1 +1,1 @@
-# ts3d-hc-bspline
+# ts3d-hc-minimalbounding

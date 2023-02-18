@@ -1,6 +1,5 @@
-//import qh from './quickhull3d/index.js'
+import { dummy } from './qhull.js';
 
-//import { qh } from './qh.js';
 
 export class TightBounding {
 
@@ -125,6 +124,7 @@ export class TightBounding {
         let smallest = {volume:10000000000,angle:0,axis:new Communicator.Point3(1,0,0), min:new Communicator.Point3(0,0,0), max:new Communicator.Point3(0,0,0)};
 
         let origmatrix = viewer.model.getNodeMatrix(nodeid);
+        let bounding = await viewer.model.getNodesBounding([nodeid]);
         for (let i=0;i<15000;i++) {
 
             let angle = 0;
@@ -136,17 +136,16 @@ export class TightBounding {
                 axis = new Communicator.Point3(Math.random(), Math.random(), Math.random());
                 axis.normalize();        
                 //axis = new Communicator.Point3(0,0,1);
-                viewer.model.setNodeMatrix(nodeid,origmatrix);
-                await TightBounding._rotateNodeFromHandle(viewer,nodeid,axis,angle)
+//                viewer.model.setNodeMatrix(nodeid,origmatrix);
+             let matrix = await TightBounding._rotateNodeFromHandle(viewer,nodeid,axis,angle, bounding.center(), false);
           //  }
 
             let min = new Communicator.Point3(1000000000,1000000000,1000000000);
             let max = new Communicator.Point3(-1000000000,-1000000000,-1000000000);
     
-            var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
-            var matrix = viewer.model.getNodeMatrix(nodeid);
-            var mult = Communicator.Matrix.multiply(netmatrix,matrix);
-    
+            let netmatrix2 = viewer.model.getNodeNetMatrix(viewer.model.getNodeParent(nodeid));
+            let netmatrix = Communicator.Matrix.multiply(matrix,netmatrix2);
+
     
             for (let j = 0; j < points.length; j++) {
                 let p = netmatrix.transform(points[j]);
@@ -171,7 +170,7 @@ export class TightBounding {
 
         if (smallest.axis != null) {
             viewer.model.setNodeMatrix(nodeid,origmatrix);
-            await TightBounding._rotateNodeFromHandle(viewer,nodeid,smallest.axis,smallest.angle)
+            await TightBounding._rotateNodeFromHandle(viewer,nodeid,smallest.axis,smallest.angle,bounding.center(), true)
         }
         else {
             viewer.model.setNodeMatrix(nodeid,origmatrix);
@@ -197,14 +196,10 @@ export class TightBounding {
     }
 
 
-    static async _rotateNodeFromHandle(viewer,nodeid,axis,angle)
+    static async _rotateNodeFromHandle(viewer,nodeid,axis,angle, center, apply)
     {
-            let bounding = await viewer.model.getNodesBounding([nodeid]);
-            let pos = bounding.center();      
-
-            var selections = hwv.selectionManager.getResults();
-            var nodeid = selections[0].getNodeId();
-
+            let pos = center;  
+    
             var netmatrix = hwv.model.getNodeNetMatrix(nodeid);
             var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
             var pivot = netmatrixinverse.transform(pos);
@@ -212,12 +207,12 @@ export class TightBounding {
             var pivotaxis = netmatrixinverse.transform(new Communicator.Point3(pos.x + axis.x, pos.y + axis.y, pos.z + axis.z));
             var resaxis = Communicator.Point3.subtract(pivotaxis, pivot).normalize();
 
-            await ViewerUtility.rotateNode(nodeid,angle,pivot,resaxis);
+            return await TightBounding.rotateNode(viewer,nodeid,angle,pivot,resaxis, apply);
             
 
     }
 
-    static async rotateNode(viewer, nodeid,angle,center,axis)
+    static async rotateNode(viewer, nodeid,angle,center,axis,apply)
     {
      
         var startmatrix = hwv.model.getNodeMatrix(nodeid);
@@ -236,7 +231,10 @@ export class TightBounding {
         var result2 = Communicator.Matrix.multiply(result, invtransmatrix);
 
         let final = Communicator.Matrix.multiply(result2, startmatrix);
-        await viewer.model.setNodeMatrix(nodeid, final);
+        if (apply) {
+            await viewer.model.setNodeMatrix(nodeid, final);
+        }
+        return final;
     }
 
 
