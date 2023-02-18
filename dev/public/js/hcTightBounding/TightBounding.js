@@ -168,18 +168,28 @@ export class TightBounding {
 
         }
 
+        let finalmatrix;
         if (smallest.axis != null) {
             viewer.model.setNodeMatrix(nodeid,origmatrix);
-            await TightBounding._rotateNodeFromHandle(viewer,nodeid,smallest.axis,smallest.angle,bounding.center(), true)
+            let tempmat = await TightBounding._rotateNodeFromHandle(viewer,nodeid,smallest.axis,smallest.angle,bounding.center(), true)
+            await TightBounding._rotateNodeFromHandle(viewer,nodeid,smallest.axis,-smallest.angle,bounding.center(), true)
+            
         }
         else {
             viewer.model.setNodeMatrix(nodeid,origmatrix);
+            finalmatrix = origmatrix;
         }
+
+
        
         let mesh = await TightBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
         let ttt = hwv.model.createNode( hwv.model.getRootNode());
+
+
+
         let  cubenode = await viewer.model.createMeshInstance(myMeshInstanceData, ttt);
+        await TightBounding._rotateNodeFromHandle(viewer,cubenode,smallest.axis,-smallest.angle,bounding.center(), true)
         return cubenode;
         
     }
