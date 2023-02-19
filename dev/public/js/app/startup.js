@@ -102,5 +102,10 @@ function calculateTightBounding() {
 
 function generateConvexHull() {
     TightBounding.showConvexHull(hwv,hwv.selectionManager.getLast().getNodeId());
+}
+
+function showStandardBounding() {
+    TightBounding.showBoundingMesh(hwv,hwv.selectionManager.getLast().getNodeId());
 
 }
+
