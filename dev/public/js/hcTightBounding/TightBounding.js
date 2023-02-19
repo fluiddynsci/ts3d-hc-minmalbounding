@@ -9,7 +9,7 @@ export class TightBounding {
         let bounding = await model.getNodesBounding([nodeid], {tightBounding:true});
         let mesh = await TightBounding._createBoundingMesh(viewer, bounding.min, bounding.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
-        let ttt = viewer.model.createNode( viewer.model.getRootNode());
+        let ttt = viewer.model.createNode( viewer.model.getRootNode(), "Bounding for " + nodeid);
         let  cubenode = await viewer.model.createMeshInstance(myMeshInstanceData, ttt);
         viewer.model.setNodesLineColor([cubenode], new Communicator.Color(0, 0, 255));
         return cubenode;
@@ -114,7 +114,7 @@ export class TightBounding {
         meshData.addFaces(meshFaces);
         let meshid = await viewer.model.createMesh(meshData);
         let myMeshInstanceData = new Communicator.MeshInstanceData(meshid);
-        var ttt = viewer.model.createNode(viewer.model.getRootNode());
+        var ttt = viewer.model.createNode(viewer.model.getRootNode(), "Convex Hull for " + nodeid);
         let cubenode = await viewer.model.createMeshInstance(myMeshInstanceData, ttt);
     }
 
@@ -200,7 +200,7 @@ export class TightBounding {
        
         let mesh = await TightBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
-        let ttt = viewer.model.createNode( viewer.model.getRootNode());
+        let ttt = viewer.model.createNode( viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
 
 
 
