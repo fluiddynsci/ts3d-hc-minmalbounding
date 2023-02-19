@@ -17,7 +17,7 @@ export class TightBounding {
 
 
 
-    static async _getMeshPointsRecursive(viewer, nodeid, points, matrix) {
+    static async _getMeshPointsRecursive(viewer, nodeid, points, matrix, useLocalMatrix = false) {
         let children = await hwv.model.getNodeChildren(nodeid);
 
         try {
@@ -25,10 +25,17 @@ export class TightBounding {
 
                 let meshdata = await hwv.model.getNodeMeshData(nodeid);
                 if (meshdata) {
-                    let tpoints = [];
 
-                    let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
-                    let totalmatrix = Communicator.Matrix.multiply(netmatrix, matrix);
+
+                    let totalmatrix;
+                    if (!useLocalMatrix) {
+                        let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
+                        totalmatrix = Communicator.Matrix.multiply(netmatrix, matrix);
+                    }
+                    else {
+                        totalmatrix = viewer.model.getNodeNetMatrix(nodeid);
+
+                    }
 
                     let data = await hwv.model.getNodeMeshData(nodeid);
 
@@ -52,7 +59,7 @@ export class TightBounding {
 
 
         for (let i = 0; i < children.length; i++) {
-            await TightBounding._getMeshPointsRecursive(viewer, children[i], points, matrix);
+            await TightBounding._getMeshPointsRecursive(viewer, children[i], points, matrix, useLocalMatrix);
         }
     }
 
@@ -82,6 +89,33 @@ export class TightBounding {
         }
 
         return respoints;
+    }
+
+    static async showConvexHull(viewer, nodeid) {
+        let points = [];
+        var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
+        var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
+        await TightBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse, true);
+
+        let res = new QuickHull(points);
+        res.build();
+        let faces = res.collectFaces();
+        var meshData = new Communicator.MeshData();
+        meshData.setFaceWinding(Communicator.FaceWinding.None);
+        let meshFaces = [];
+        for (let i = 0; i < faces.length; i++) {
+            let face = faces[i];
+            for (let j = 0; j < 3; j++) {
+                let pi = face[j]
+                meshFaces.push(points[pi][0], points[pi][1], points[pi][2]);
+            }
+        }    
+
+        meshData.addFaces(meshFaces);
+        let meshid = await viewer.model.createMesh(meshData);
+        let myMeshInstanceData = new Communicator.MeshInstanceData(meshid);
+        var ttt = hwv.model.createNode(viewer.model.getRootNode());
+        let cubenode = await viewer.model.createMeshInstance(myMeshInstanceData, ttt);
     }
   
     static async calculatePointBounding(viewer,nodeid) {

@@ -99,3 +99,8 @@ function calculateTightBounding() {
     TightBounding.calculateTightBounding(hwv,hwv.selectionManager.getLast().getNodeId());
 
 }
+
+function generateConvexHull() {
+    TightBounding.showConvexHull(hwv,hwv.selectionManager.getLast().getNodeId());
+
+}
