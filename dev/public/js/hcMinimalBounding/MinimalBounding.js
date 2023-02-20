@@ -78,8 +78,6 @@ export class MinimalBounding {
             }
         }
 
-        console.log(smallest.volume);
-
         let mesh = await MinimalBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
         let boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
