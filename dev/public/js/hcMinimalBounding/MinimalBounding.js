@@ -1,10 +1,10 @@
 import { dummy } from './qhull.js';
 
-export class TightBounding {
+export class MinimalBounding {
 
-    static async calculateTightBounding(viewer, nodeid, iterations = 10000, origBoundsBias = 0.9, steps = 1) {
+    static async calculateMinimalBounding(viewer, nodeid, iterations = 10000, origBoundsBias = 0.9, steps = 1) {
 
-        let points = await TightBounding._getMeshPoints(viewer, nodeid);
+        let points = await MinimalBounding._getMeshPoints(viewer, nodeid);
         let smallest = { volume: Number.MAX_VALUE, angle: 0, axis: new Communicator.Point3(1, 0, 0), min: new Communicator.Point3(0, 0, 0), max: new Communicator.Point3(0, 0, 0) };
 
         let origvolume = Number.MAX_VALUE;
@@ -38,7 +38,7 @@ export class TightBounding {
                     angle = k * steps;
                 }
 
-                let matrix = await TightBounding._rotateNode(viewer, nodeid, axis, angle, bounding.center(), false);
+                let matrix = await MinimalBounding._rotateNode(viewer, nodeid, axis, angle, bounding.center(), false);
 
                 let min = new Communicator.Point3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                 let max = new Communicator.Point3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
@@ -80,13 +80,13 @@ export class TightBounding {
 
         console.log(smallest.volume);
 
-        let mesh = await TightBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
+        let mesh = await MinimalBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
         let boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
 
         let tempNode = await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
-        await TightBounding._rotateNode(viewer, tempNode, smallest.axis, -smallest.angle, bounding.center(), true)
-        return boundingNode;
+        await MinimalBounding._rotateNode(viewer, tempNode, smallest.axis, -smallest.angle, bounding.center(), true)
+        return {nodeid: boundingNode, volume: smallest.volume, min: smallest.min, max: smallest.max};
 
     }
 
@@ -94,7 +94,7 @@ export class TightBounding {
         let points = [];
         var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
         var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
-        await TightBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse, true);
+        await MinimalBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse, true);
 
         let res = new QuickHull(points);
         res.build();
@@ -122,7 +122,7 @@ export class TightBounding {
     static async showBoundingMesh(viewer, nodeid) {
         let model = viewer.model;
         let bounding = await model.getNodesBounding([nodeid], { tightBounding: true });
-        let mesh = await TightBounding._createBoundingMesh(viewer, bounding.min, bounding.max);
+        let mesh = await MinimalBounding._createBoundingMesh(viewer, bounding.min, bounding.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
         let boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Bounding for " + nodeid);
         let tempNode = await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
@@ -138,7 +138,6 @@ export class TightBounding {
 
                 let meshdata = await viewer.model.getNodeMeshData(nodeid);
                 if (meshdata) {
-
 
                     let totalmatrix;
                     if (!useLocalMatrix) {
@@ -171,7 +170,7 @@ export class TightBounding {
         }
 
         for (let i = 0; i < children.length; i++) {
-            await TightBounding._getMeshPointsRecursive(viewer, children[i], points, matrix, useLocalMatrix);
+            await MinimalBounding._getMeshPointsRecursive(viewer, children[i], points, matrix, useLocalMatrix);
         }
     }
 
@@ -180,7 +179,7 @@ export class TightBounding {
         var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
         var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
 
-        await TightBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse);
+        await MinimalBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse);
 
         let respoints = [];
         let res = new QuickHull(points);
@@ -211,7 +210,7 @@ export class TightBounding {
         var pivotaxis = netmatrixinverse.transform(new Communicator.Point3(pos.x + axis.x, pos.y + axis.y, pos.z + axis.z));
         var resaxis = Communicator.Point3.subtract(pivotaxis, pivot).normalize();
 
-        return await TightBounding._rotateNodeOffaxis(viewer, nodeid, angle, pivot, resaxis, apply);
+        return await MinimalBounding._rotateNodeOffaxis(viewer, nodeid, angle, pivot, resaxis, apply);
     }
 
     static async _rotateNodeOffaxis(viewer, nodeid, angle, center, axis, apply) {

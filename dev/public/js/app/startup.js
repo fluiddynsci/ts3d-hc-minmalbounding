@@ -95,17 +95,17 @@ function createUILayout() {
 
 }
 
-function calculateTightBounding() {
-    TightBounding.calculateTightBounding(hwv,hwv.selectionManager.getLast().getNodeId());
+function calculateMinimalBounding() {
+    MinimalBounding.calculateMinimalBounding(hwv,hwv.selectionManager.getLast().getNodeId());
 
 }
 
 function generateConvexHull() {
-    TightBounding.showConvexHull(hwv,hwv.selectionManager.getLast().getNodeId());
+    MinimalBounding.showConvexHull(hwv,hwv.selectionManager.getLast().getNodeId());
 }
 
 function showStandardBounding() {
-    TightBounding.showBoundingMesh(hwv,hwv.selectionManager.getLast().getNodeId());
+    MinimalBounding.showBoundingMesh(hwv,hwv.selectionManager.getLast().getNodeId());
 
 }
 

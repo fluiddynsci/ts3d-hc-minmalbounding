@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './dev/public/js/hcTightBounding/hcTightBounding.js',
+  entry: './dev/public/js/hcMinimalBounding/hcMinimalBounding.js',
   mode: "production",
   experiments: {
     outputModule: true
@@ -9,6 +9,6 @@ module.exports = {
   output: {
     libraryTarget: 'module',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'hcTightBounding.min.js',
+    filename: 'hcMinimalBounding.module.min.js',
   },  
 };
