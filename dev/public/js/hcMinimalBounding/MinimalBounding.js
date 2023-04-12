@@ -88,6 +88,39 @@ export class MinimalBounding {
 
     }
 
+    static async calculateConvexHullPoints(viewer, nodeid) {
+        let points = [];
+        var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
+        var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
+        await MinimalBounding._getMeshPointsRecursive(viewer, nodeid, points, netmatrixinverse, true);
+
+        let res = new QuickHull(points);
+        res.build();
+
+        let faces = res.collectFaces();
+        var meshData = new Communicator.MeshData();
+        meshData.setFaceWinding(Communicator.FaceWinding.None);
+        let meshFaces = [];
+        let uniquePoints = [];
+        for (let i = 0; i < faces.length; i++) {
+            let face = faces[i];
+            for (let j = 0; j < 3; j++) {
+                let pi = face[j]
+                let pstring = points[pi][0] + "," + points[pi][1] + "," + points[pi][2];
+                if (uniquePoints[pstring] == undefined) {
+                    uniquePoints[pstring] = new Communicator.Point3(points[pi][0], points[pi][1], points[pi][2]);
+                }
+            }
+        }
+        let uniquePointsArray = [];
+        for (let i in uniquePoints) {
+            uniquePointsArray.push(uniquePoints[i]);
+        }
+
+        return uniquePointsArray;
+    }
+
+
     static async showConvexHull(viewer, nodeid) {
         let points = [];
         var netmatrix = viewer.model.getNodeNetMatrix(nodeid);

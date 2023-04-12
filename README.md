@@ -1,6 +1,13 @@
 # Minimal Bounding
 
 
+## Version Update (1.0.1) 
+* Function for generating points of convex hull.  
+Example: 
+```
+    let pointarray = MinimalBounding.calculateConvexHullPoints(hwv,hwv.selectionManager.getLast().getNodeId());
+```
+
 ## Overview
 This class calculates the minimal bounding box for a node in HOOPS Communicator. This is the most tightly fitting bounding box around the geometry contained within a node, and will often not be axis aligned. Calculating this bounding box can be useful for volume calculations and measurements and is functionality often found in various CAD applications
 
