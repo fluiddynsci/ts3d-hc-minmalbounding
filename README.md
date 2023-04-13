@@ -1,7 +1,11 @@
 # Minimal Bounding
 
 ## Version Update (1.0.2) 
-* Functions for fitting nodes to camera added (beta)
+* Functions for fitting nodes to camera added (beta)  
+Examples:  
+`MinimalBounding.fitNodesExact(hwv,[hwv.model.getRootNode()]);` (slower but fits model tightly)   
+`MinimalBounding.fitNodes(hwv,[hwv.model.getRootNode()],{tightBounding:true, ignoreInvisible:true});`
+
 
 ## Version Update (1.0.1) 
 * Function for generating points of convex hull.  
