@@ -19,7 +19,10 @@ var myCurveSequence;
 var contextMenu;
 
 async function msready() {
-
+    hwv.selectionManager.setSelectionFilter(function (nodeid) {
+        return nodeid;
+    }
+    );
 
 }
 
@@ -30,6 +33,7 @@ function continousCheck() {
 function startup()
 {
     createUILayout();
+   
 } 
 
 function createUILayout() {
@@ -109,3 +113,9 @@ function showStandardBounding() {
 
 }
 
+
+
+function fitNodesExact() {
+    MinimalBounding.fitNodesExact(hwv,[hwv.selectionManager.getLast().getNodeId()]);
+
+}
