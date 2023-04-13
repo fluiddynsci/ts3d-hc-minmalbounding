@@ -382,8 +382,7 @@ export class MinimalBounding {
         let zoomIn = false;
 
     
-        for (let j = 1; j < 50; j++) {
-            //await new Promise(r => setTimeout(r, 10));      
+        for (let j = 1; j < 150; j++) {
 
             let tooBig = false;
             for (let i = 0; i < corners.length; i++) {
@@ -400,23 +399,22 @@ export class MinimalBounding {
     
             if (zoomIn) {
                 if (tooBig) {
-                    camera.setWidth(extentsLength / (1 + (j - 2) * 0.02));
-                    camera.setHeight(extentsLength / (1 + (j - 2) * 0.02));
+                    camera.setWidth(extentsLength / (1 + (j - 2) * 0.04));
+                    camera.setHeight(extentsLength / (1 + (j - 2) * 0.04));
                     break;
                 }
                 else {
-                    camera.setWidth(extentsLength / (1 + j * 0.02));
-                    camera.setHeight(extentsLength / (1 + j * 0.02));
+                    camera.setWidth(extentsLength / (1 + j * 0.04));
+                    camera.setHeight(extentsLength / (1 + j * 0.04));
                 }
             }
             else {
                 if (!tooBig) {
                     break;
                 }
-                camera.setWidth(extentsLength / (1 - j * 0.02));
-                camera.setHeight(extentsLength / (1 - j * 0.02));
+                camera.setWidth(extentsLength / (1 - j * 0.04));
+                camera.setHeight(extentsLength / (1 - j * 0.04));
             }
-            
         }
         await viewer.view.setCamera(camera);
     }
