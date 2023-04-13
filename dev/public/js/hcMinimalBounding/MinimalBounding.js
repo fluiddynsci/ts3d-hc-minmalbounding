@@ -340,7 +340,7 @@ export class MinimalBounding {
         
         let corners = await MinimalBounding.calculateConvexHullPoints(viewer, nodeids[0]);
         // let corners  = [];
-        // await getMeshPointsRecursive(hwv, nodeids[0], corners);
+        // await getMeshPointsRecursive(viewer, nodeids[0], corners);
 
         let mat = camera.getFullMatrix(viewer);
         let matinv = Communicator.Matrix.inverse(mat);
@@ -376,26 +376,12 @@ export class MinimalBounding {
         let delta = Communicator.Point3.subtract(position, world);
     
     
-        let mi = pmatinv.transform(new Communicator.Point3(bbox.min.x/vw*2-1,(vh-bbox.min.y)/vh*2-1,0));
-        let ma = pmatinv.transform(new Communicator.Point3(bbox.max.x/vw*2-1,(vh-bbox.max.y)/vh*2-1,0));
-            
-     
-        let mi2 = vmatinv.transform(mi);
-        let ma2 = vmatinv.transform(ma);
-    
          camera.setPosition(world);
          camera.setTarget(Communicator.Point3.subtract(target, delta));
     
-    
-        // corners = [];
-        // corners.push(mi2,ma2);
         let zoomIn = false;
 
-        let rr  = Math.abs(bbox.max.x - bbox.min.x) / vw;
-
-        // camera.setWidth(camera.getWidth() * rr);
-        // camera.setHeight(camera.getHeight() * rr);
-
+    
         for (let j = 1; j < 50; j++) {
             //await new Promise(r => setTimeout(r, 10));      
 
@@ -434,176 +420,65 @@ export class MinimalBounding {
         }
         await viewer.view.setCamera(camera);
     }
-    
 
-}
+    static async fitNodes(viewer, nodeids,config) {
 
-
-async function createCubeMesh(viewer, showFaces, offset, scale) {
-    var length;
-    if (scale != undefined)
-        length = 0.5 * scale;
-    else
-        length = 0.5;
-
-
-    var meshData = new Communicator.MeshData();
-    meshData.setFaceWinding(Communicator.FaceWinding.Clockwise);
-   
-    var vertices = [
-        //front
-        -length, length, length, length, length, length, -length, -length, length,
-        length, length, length, length, -length, length, -length, -length, length,
-        //back
-        length, length, -length, -length, length, -length, -length, -length, -length,
-        length, length, -length, -length, -length, -length, length, -length, -length,
-        //top
-        -length, length, -length, length, length, -length, length, length, length,
-        -length, length, -length, length, length, length, -length, length, length,
-        //bottom
-        -length, -length, -length, length, -length, length, length, -length, -length,
-        -length, -length, -length, -length, -length, length, length, -length, length,
-        //left
-        -length, length, -length, -length, length, length, -length, -length, -length,
-        -length, length, length, -length, -length, length, -length, -length, -length,
-        //right
-        length, length, length, length, length, -length, length, -length, -length,
-        length, length, length, length, -length, -length, length, -length, length
-    ];
-    if (offset != undefined) {
-
-        for (var i = 0; i < vertices.length; i += 3) {
-            vertices[i] += offset.x;
-            vertices[i + 1] += offset.y;
-            vertices[i + 2] += offset.z;
-        }
-    }
-    var normals = [
-        //front
-        0, 0, 1, 0, 0, 1, 0, 0, 1,
-        0, 0, 1, 0, 0, 1, 0, 0, 1,
-        //back
-        0, 0, -1, 0, 0, -1, 0, 0, -1,
-        0, 0, -1, 0, 0, -1, 0, 0, -1,
-        //top
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        //bottom
-        0, -1, 0, 0, -1, 0, 0, -1, 0,
-        0, -1, 0, 0, -1, 0, 0, -1, 0,
-        //left
-        -1, 0, 0, -1, 0, 0, -1, 0, 0,
-        -1, 0, 0, -1, 0, 0, -1, 0, 0,
-        //right
-        1, 0, 0, 1, 0, 0, 1, 0, 0,
-        1, 0, 0, 1, 0, 0, 1, 0, 0
-    ];
-
-   
-    var polylines = [
-        [
-            -length, length, length,
-            length, length, length,
-            length, -length, length,
-            -length, -length, length,
-            -length, length, length
-        ],
-        [
-            length, length, length,
-            length, length, -length,
-            length, -length, -length,
-            length, -length, length,
-            length, length, length
-        ],
-        [
-            -length, length, -length,
-            length, length, -length,
-            length, -length, -length,
-            -length, -length, -length,
-            -length, length, -length
-        ],
-        [
-            -length, length, length,
-            -length, length, -length,
-            -length, -length, -length,
-            -length, -length, length,
-            -length, length, length
-        ]
-    ];
-    if (showFaces)
-        meshData.addFaces(vertices, normals);
-    else {
-        for (let i = 0; i < polylines.length; i++)
-            meshData.addPolyline(polylines[i]);
-    }
-    return await viewer.model.createMesh(meshData);
-}
-
-
-async function createDebugCube(viewer,pos, scale = 0.3, color  = new Communicator.Color(255,0,0), flush = false)
-{
-    if (window.debugCubeNode === undefined)
-    {
-        window.debugCubeNode = await viewer.model.createNode(viewer.model.getRootNode());
-    }
-
-    if (flush)
-    {
-        viewer.model.deleteNode(window.debugCubeNode);
-        window.debugCubeNode = viewer.model.createNode(viewer.model.getRootNode());
-    }
-    let cubeMesh = await createCubeMesh(viewer, true, pos, scale);
-    let myMeshInstanceData = new Communicator.MeshInstanceData(cubeMesh);
-    var ttt = hwv.model.createNode( window.debugCubeNode);
-    let cubenode = await viewer.model.createMeshInstance(myMeshInstanceData, ttt);
-    if (color)
-        hwv.model.setNodesFaceColor([ttt], color);
-    return ttt;
-}
-
-
-
-async function getMeshPointsRecursive(viewer, nodeid, points, matrix = new Communicator.Matrix(), useLocalMatrix = false) {
-    let children = await viewer.model.getNodeChildren(nodeid);
-
-    try {
-        if (children.length == 0) {
-
-            let meshdata = await viewer.model.getNodeMeshData(nodeid);
-            if (meshdata) {
-
-                let totalmatrix;
-                if (!useLocalMatrix) {
-                    let netmatrix = viewer.model.getNodeNetMatrix(nodeid);
-                    totalmatrix = Communicator.Matrix.multiply(netmatrix, matrix);
-                }
-                else {
-                    totalmatrix = viewer.model.getNodeNetMatrix(nodeid);
-
-                }
-
-                let data = await viewer.model.getNodeMeshData(nodeid);
-
-                for (let i = 0; i < data.faces.elementCount; i++) {
-                    let face = data.faces.element(i);
-                    let pp = face.iterate();
-                    for (let j = 0; j < face.vertexCount; j += 3) {
-                        for (let k = 0; k < 3; k++) {
-                            let rawpoint = pp.next();
-                            let p = new Communicator.Point3(rawpoint.position[0], rawpoint.position[1], rawpoint.position[2]);
-                            let tp = totalmatrix.transform(p);
-                            points.push(new Communicator.Point3(tp.x, tp.y, tp.z));
-                        }
-                    }
-                }
+        let bounding = await viewer.model.getNodesBounding(nodeids, config);
+        const extents = bounding.extents();
+        const extentsLength = extents.length();
+        let camera = viewer.view.getCamera();
+        const height = camera.getHeight();
+        const eye = Communicator.Point3.subtract(camera.getPosition(), camera.getTarget());
+        const eyeLength = eye.length();
+        const newEyeLength = (extentsLength * eyeLength) / height;
+        const target = bounding.center();
+        const position = Communicator.Point3.add(target, eye.normalize().scale(newEyeLength));
+  
+        camera.setTarget(target);
+        camera.setPosition(position);
+  
+        camera.setWidth(extentsLength);
+        camera.setHeight(extentsLength);
+        let corners = bounding.getCorners();
+  
+        let vw = $(viewer.getViewElement()).width();
+        let vh = $(viewer.getViewElement()).height();
+  
+        let zoomIn = false;
+  
+        for (let j = 1; j < 200; j++) {
+          let tooBig = false;
+          for (let i = 0; i < corners.length; i++) {
+            let pp = viewer.view.projectPoint(corners[i], camera);
+            if (pp.x < 0 || pp.x > vw || pp.y < 0 || pp.y > vh) {
+              tooBig = true;
+              break;
             }
+          }
+  
+          if (j == 1 && !tooBig) {
+            zoomIn = true;
+          }
+  
+          if (zoomIn) {
+            if (tooBig) {
+              camera.setWidth(extentsLength / (1 + (j - 2) * 0.02));
+              camera.setHeight(extentsLength / (1 + (j - 2) * 0.02));
+              break;
+            }
+            else {
+              camera.setWidth(extentsLength / (1 + j * 0.02));
+              camera.setHeight(extentsLength / (1 + j * 0.02));
+            }
+          }
+          else {
+            if (!tooBig) {
+              break;
+            }
+            camera.setWidth(extentsLength / (1 - j * 0.02));
+            camera.setHeight(extentsLength / (1 - j * 0.02));
+          }
         }
-    } catch (e) {
-
-    }
-
-    for (let i = 0; i < children.length; i++) {
-        await getMeshPointsRecursive(viewer, children[i], points, matrix, useLocalMatrix);
-    }
+        await viewer.view.setCamera(camera);
+      }
 }
-

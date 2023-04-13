@@ -113,6 +113,10 @@ function showStandardBounding() {
 
 }
 
+function fitNodes() {
+    MinimalBounding.fitNodes(hwv,[hwv.selectionManager.getLast().getNodeId()],{tightBounding:true, ignoreInvisible:true});
+}
+
 
 
 function fitNodesExact() {

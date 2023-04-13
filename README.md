@@ -1,5 +1,7 @@
 # Minimal Bounding
 
+## Version Update (1.0.2) 
+* Functions for fitting nodes to camera added (beta)
 
 ## Version Update (1.0.1) 
 * Function for generating points of convex hull.  
