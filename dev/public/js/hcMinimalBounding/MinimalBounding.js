@@ -427,16 +427,16 @@ export class MinimalBounding {
         let camera = viewer.view.getCamera();
         const height = camera.getHeight();
         const eye = Communicator.Point3.subtract(camera.getPosition(), camera.getTarget());
-        const eyeLength = eye.length();
-        const newEyeLength = (extentsLength * eyeLength) / height;
-        const target = bounding.center();
-        const position = Communicator.Point3.add(target, eye.normalize().scale(newEyeLength));
-  
+        const newEyeLength = (extentsLength * height) / height;
+        let target = bounding.center();
+        let position = Communicator.Point3.add(target, eye.normalize().scale(newEyeLength));
+            
         camera.setTarget(target);
         camera.setPosition(position);
-  
+    
         camera.setWidth(extentsLength);
         camera.setHeight(extentsLength);
+    
         let corners = bounding.getCorners();
   
         let vw = $(viewer.getViewElement()).width();
