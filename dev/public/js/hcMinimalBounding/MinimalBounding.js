@@ -317,15 +317,14 @@ export class MinimalBounding {
 
 
 
-    static async fitNodesExact(viewer,nodeids, config) {
-        let bounding = await viewer.model.getNodesBounding(nodeids, config);
+    static async fitNodesExact(viewer,nodeids, config = null, fovModifier = 1) {
+        let bounding = await viewer.model.getNodesBounding(nodeids, config ? config : undefined);
         const extents = bounding.extents();
         const extentsLength = extents.length();
         let camera = viewer.view.getCamera();
         const height = camera.getHeight();
         const eye = Communicator.Point3.subtract(camera.getPosition(), camera.getTarget());
-        const eyeLength = eye.length();
-        const newEyeLength = (extentsLength * height) / height;
+        const newEyeLength = extentsLength / fovModifier
         let target = bounding.center();
         let position = Communicator.Point3.add(target, eye.normalize().scale(newEyeLength));
             
@@ -419,15 +418,15 @@ export class MinimalBounding {
         await viewer.view.setCamera(camera);
     }
 
-    static async fitNodes(viewer, nodeids,config) {
+    static async fitNodes(viewer, nodeids, config = null, fovModifier = 1.0) {
 
-        let bounding = await viewer.model.getNodesBounding(nodeids, config);
+        let bounding = await viewer.model.getNodesBounding(nodeids, config ? config : undefined);
         const extents = bounding.extents();
         const extentsLength = extents.length();
         let camera = viewer.view.getCamera();
         const height = camera.getHeight();
         const eye = Communicator.Point3.subtract(camera.getPosition(), camera.getTarget());
-        const newEyeLength = (extentsLength * height) / height;
+        const newEyeLength = extentsLength / fovModifier;
         let target = bounding.center();
         let position = Communicator.Point3.add(target, eye.normalize().scale(newEyeLength));
             
