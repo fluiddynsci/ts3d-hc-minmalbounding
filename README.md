@@ -1,5 +1,13 @@
 # Minimal Bounding
 
+## Version Update (1.0.5) 
+* Function for aligning camera with minimal bounding box added.
+Example:
+```
+   let res = await MinimalBounding.calculateMinimalBounding(hwv,hwv.selectionManager.getLast().getNodeId(),50000,undefined,undefined,true);
+   MinimalBounding.alignCameraWithMinimalBounding(hwv, res, new Communicator.Point3(0,1,0), new Communicator.Point3(1,0,0));
+```
+
 ## Version Update (1.0.2) 
 * Functions for fitting nodes to camera added (beta)  
 Examples:  

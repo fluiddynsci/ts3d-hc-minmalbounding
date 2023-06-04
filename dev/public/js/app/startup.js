@@ -123,3 +123,10 @@ function fitNodesExact() {
     MinimalBounding.fitNodesExact(hwv,[hwv.selectionManager.getLast().getNodeId()]);
 
 }
+
+
+
+async function alignCamera() {
+    let res = await MinimalBounding.calculateMinimalBounding(hwv,hwv.selectionManager.getLast().getNodeId(),50000,undefined,undefined,true);
+    MinimalBounding.alignCameraWithMinimalBounding(hwv, res, new Communicator.Point3(0,1,0), new Communicator.Point3(1,0,0));
+}

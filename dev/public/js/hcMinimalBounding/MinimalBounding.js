@@ -3,7 +3,7 @@ import { dummy } from './qhull.js';
 
 export class MinimalBounding {
 
-    static async calculateMinimalBounding(viewer, nodeid, iterations = 10000, origBoundsBias = 0.9, steps = 1) {
+    static async calculateMinimalBounding(viewer, nodeid, iterations = 10000, origBoundsBias = 0.9, steps = 1, createGeometry = true) {
 
         let points = await MinimalBounding._getMeshPoints(viewer, nodeid);
         let smallest = { volume: Number.MAX_VALUE, angle: 0, axis: new Communicator.Point3(1, 0, 0), min: new Communicator.Point3(0, 0, 0), max: new Communicator.Point3(0, 0, 0) };
@@ -79,14 +79,44 @@ export class MinimalBounding {
             }
         }
 
-        let mesh = await MinimalBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
-        let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
-        let boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
 
-        let tempNode = await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
-        await MinimalBounding._rotateNode(viewer, tempNode, smallest.axis, -smallest.angle, bounding.center(), true)
-        return {nodeid: boundingNode, volume: smallest.volume, min: smallest.min, max: smallest.max};
 
+        let resmatrix;
+        let boundingNode;
+        if (createGeometry) { 
+            let mesh = await MinimalBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
+            let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
+            boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
+
+            await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
+            resmatrix = await MinimalBounding._rotateNode(viewer, boundingNode, smallest.axis, -smallest.angle, bounding.center(), true)
+        }
+        else {
+            resmatrix = await MinimalBounding._rotateNode(viewer, boundingNode, smallest.axis, -smallest.angle, bounding.center(), false)
+
+
+        }
+        return {nodeid: boundingNode, matrix:resmatrix, volume: smallest.volume, min: smallest.min, max: smallest.max};
+
+    }
+
+    static async alignCameraWithMinimalBounding(viewer, minres, front, up) {
+
+        let rmat = minres.matrix;
+        let nmat = rmat.normalMatrix();
+        let res = nmat.transform(front);
+        let res2 = nmat.transform(up);
+
+        let cam = viewer.view.getCamera();
+        let pos = cam.getPosition();
+        let target = cam.getTarget();
+        let delta = Communicator.Point3.subtract(pos, target).length();
+        let newpos = new Communicator.Point3((minres.min.x + minres.max.x) / 2.0, (minres.min.y + minres.max.y) / 2.0, (minres.min.z + minres.max.z) / 2.0);
+        cam.setTarget(newpos);
+        cam.setPosition(new Communicator.Point3(newpos.x - res.x * delta, newpos.y - res.y * delta, newpos.z - res.z * delta));
+        cam.setUp(res2);
+        viewer.view.setCamera(cam);        
+        view.view.fitWorld();
     }
 
     static async calculateConvexHullPoints(viewer, nodeid) {
