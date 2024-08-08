@@ -86,7 +86,7 @@ export class MinimalBounding {
         if (createGeometry) { 
             let mesh = await MinimalBounding._createBoundingMesh(viewer, smallest.min, smallest.max);
             let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
-            boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Minimal Bounding for " + nodeid);
+            boundingNode = viewer.model.createNode(viewer.model.getAbsoluteRootNode(), "Minimal Bounding for " + nodeid);
 
             await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
             resmatrix = await MinimalBounding._rotateNode(viewer, boundingNode, smallest.axis, -smallest.angle, bounding.center(), true)
@@ -175,7 +175,7 @@ export class MinimalBounding {
         meshData.addFaces(meshFaces);
         let meshid = await viewer.model.createMesh(meshData);
         let myMeshInstanceData = new Communicator.MeshInstanceData(meshid);
-        var hullNode = viewer.model.createNode(viewer.model.getRootNode(), "Convex Hull for " + nodeid);
+        var hullNode = viewer.model.createNode(viewer.model.getAbsoluteRootNode(), "Convex Hull for " + nodeid);
         await viewer.model.createMeshInstance(myMeshInstanceData, hullNode);
         return hullNode;
     }
@@ -186,7 +186,7 @@ export class MinimalBounding {
         let bounding = await model.getNodesBounding([nodeid], { tightBounding: true });
         let mesh = await MinimalBounding._createBoundingMesh(viewer, bounding.min, bounding.max);
         let myMeshInstanceData = new Communicator.MeshInstanceData(mesh);
-        let boundingNode = viewer.model.createNode(viewer.model.getRootNode(), "Bounding for " + nodeid);
+        let boundingNode = viewer.model.createNode(viewer.model.getAbsoluteRootNode(), "Bounding for " + nodeid);
         let tempNode = await viewer.model.createMeshInstance(myMeshInstanceData, boundingNode);
         viewer.model.setNodesLineColor([tempNode], new Communicator.Color(0, 0, 255));
         return boundingNode;
