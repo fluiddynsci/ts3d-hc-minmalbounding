@@ -152,7 +152,7 @@ export class MinimalBounding {
     }
 
 
-    static async showConvexHull(viewer, nodeid) {
+    static async showConvexHull(viewer, nodeid, parent_node = null, node_name=null) {
         let points = [];
         var netmatrix = viewer.model.getNodeNetMatrix(nodeid);
         var netmatrixinverse = Communicator.Matrix.inverse(netmatrix);
@@ -174,8 +174,11 @@ export class MinimalBounding {
 
         meshData.addFaces(meshFaces);
         let meshid = await viewer.model.createMesh(meshData);
-        let myMeshInstanceData = new Communicator.MeshInstanceData(meshid);
-        var hullNode = viewer.model.createNode(viewer.model.getAbsoluteRootNode(), "Convex Hull for " + nodeid);
+        let myMeshInstanceData = new Communicator.MeshInstanceData(meshid, null, node_name);
+        if (parent_node == null){
+            parent_node = viewer.model.getAbsoluteRootNode()
+        }
+        var hullNode = viewer.model.createNode(parent_node, "Convex Hull for " + nodeid);
         await viewer.model.createMeshInstance(myMeshInstanceData, hullNode);
         return hullNode;
     }
